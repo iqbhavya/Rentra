@@ -1,0 +1,71 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="container py-4">
+    <h2 class="mb-4 fw-bold"><i class="fa-solid fa-plane-departure text-danger me-2"></i>My Bookings</h2>
+
+    <% if (bookings && bookings.length > 0) { %>
+        <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
+            <% for (let booking of bookings) { %>
+                <div class="col">
+                    <div class="card h-100 shadow-sm border rounded-4 overflow-hidden" style="transition: transform 0.2s ease;">
+                        <div class="row g-0 h-100">
+                            <!-- Listing Image -->
+                            <div class="col-md-5 position-relative" style="min-height: 200px;">
+                                <img src="<%= booking.listing.image.url %>" class="img-fluid w-100 h-100" alt="<%= booking.listing.title %>" style="object-fit: cover; position: absolute; top:0; left:0;">
+                            </div>
+                            
+                            <!-- Booking Details -->
+                            <div class="col-md-7 d-flex flex-column">
+                                <div class="card-body p-4 flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title fw-bold text-truncate mb-0" style="max-width: 180px;"><%= booking.listing.title %></h5>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded">Confirmed</span>
+                                    </div>
+                                    <p class="text-muted small mb-3"><i class="fa-solid fa-location-dot me-1"></i><%= booking.listing.location %>, <%= booking.listing.country %></p>
+                                    
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                                            <span class="text-secondary">Check-in:</span>
+                                            <span class="fw-semibold text-dark"><%= booking.checkIn.toLocaleDateString("en-IN", { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-1" style="font-size: 0.9rem;">
+                                            <span class="text-secondary">Checkout:</span>
+                                            <span class="fw-semibold text-dark"><%= booking.checkOut.toLocaleDateString("en-IN", { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+                                        </div>
+                                        <div class="d-flex justify-content-between" style="font-size: 0.9rem;">
+                                            <span class="text-secondary">Guests:</span>
+                                            <span class="fw-semibold text-dark"><%= booking.guests %> <%= booking.guests > 1 ? 'guests' : 'guest' %></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-top pt-3 d-flex justify-content-between align-items-center">
+                                        <span class="text-muted small">Total Paid:</span>
+                                        <span class="fs-5 fw-bold text-dark">&#8377; <%= booking.totalPrice.toLocaleString("en-IN") %></span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Card Footer: Cancel Button -->
+                                <div class="px-4 pb-4 bg-transparent border-0 pt-0">
+                                    <form method="POST" action="/bookings/<%= booking._id %>?_method=DELETE" class="m-0" onsubmit="return confirm('Are you sure you want to cancel this booking reservation?');">
+                                        <button type="submit" class="btn btn-outline-danger w-100 rounded-3 py-2 fw-semibold" style="font-size: 0.9rem;">
+                                            <i class="fa-solid fa-xmark me-2"></i>Cancel Reservation
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    <% } else { %>
+        <div class="text-center py-5 my-5 border rounded-4 bg-light shadow-sm px-4">
+            <div class="text-muted mb-3">
+                <i class="fa-solid fa-suitcase-rolling" style="font-size: 4rem; color: #ccc;"></i>
+            </div>
+            <h4 class="fw-bold mb-2">No trips booked... yet!</h4>
+            <p class="text-secondary mb-4 mx-auto" style="max-width: 400px;">Time to dust off your bags and start planning your next getaway. Explore rentals around the world.</p>
+            <a href="/listings" class="btn btn-form-action px-4 py-2" style="width: auto;">Start Exploring</a>
+        </div>
+    <% } %>
+</div>

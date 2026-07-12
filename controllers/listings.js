@@ -2,9 +2,14 @@ const Listing = require("../models/listing");
 
 
 module.exports.index = async (req, res) => {
-    const allListings = await Listing.find({});
-    res.render('listings/index.ejs', { listings: allListings });
-
+    const { category } = req.query;
+    let allListings;
+    if (category && category.trim() !== "") {
+        allListings = await Listing.find({ category: category }).populate("reviews");
+    } else {
+        allListings = await Listing.find({}).populate("reviews");
+    }
+    res.render('listings/index.ejs', { listings: allListings, activeCategory: category || "" });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -97,8 +102,8 @@ module.exports.search = async (req, res) => {
             { title: { $regex: q, $options: "i" } },
             { country: { $regex: q, $options: "i" } }
         ]
-    });
+    }).populate("reviews");
 
     // We use "listings" as the key here to match your EJS loop
-    res.render("listings/index.ejs", { listings }); 
+    res.render("listings/index.ejs", { listings, activeCategory: "" }); 
 };

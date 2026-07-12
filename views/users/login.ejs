@@ -1,21 +1,30 @@
 <% layout("layouts/boilerplate") %>
-<div class="row mt-3">
-    <h1 class="col-6 offset-3">Login</h1>
-    <div class="col-8 offset-3 ">
-        <form action="/login" method="POST" class="needs-validation" novalidate>
-            <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" id="username" required class="form-control">
-            
-            
-            </div>
-            <div class="mb-3">
-            <label for="password" class="form-label">'Password</label>
-            <input type="password" name="password" id="password" required class="form-control">
-            
-            </div>
 
-            <button class="btn btn-success">Login</button>
-        </form>
+<div class="row">
+    <div class="col-12">
+        <div class="form-card" style="max-width: 480px;">
+            <h1 class="form-title text-center">Login to Rentra</h1>
+            
+            <form action="/login" method="POST" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" name="username" id="username" required placeholder="Enter username" class="form-control">
+                    <div class="invalid-feedback">Please enter your username.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" name="password" id="password" required placeholder="Enter password" class="form-control">
+                    <div class="invalid-feedback">Please enter your password.</div>
+                </div>
+
+                <button class="btn btn-form-action mb-3">Login</button>
+            </form>
+            
+            <div class="text-center mt-3">
+                <span class="text-muted" style="font-size: 0.9rem;">New to Rentra? </span>
+                <a href="/signup" class="text-decoration-none fw-bold" style="color: var(--primary-color); font-size: 0.9rem;">Sign up now</a>
+            </div>
+        </div>
     </div>
 </div>
