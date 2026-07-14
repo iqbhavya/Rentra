@@ -5,8 +5,11 @@
 [![Express](https://img.shields.io/badge/Backend-Express.js-000000.svg?logo=express)](https://expressjs.com/)
 [![License](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Responsive UI](https://img.shields.io/badge/UI-Responsive-FF69B4.svg)]()
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg?style=for-the-badge&logo=render)](https://rentra-ila8.onrender.com/listings)
 
 Rentra is a full-stack rental marketplace inspired by modern vacation rental platforms. It offers a premium, responsive web interface that allows hosts to list their properties and enables travelers to book destinations and share reviews. Built on the robust **MERN (Express/Mongo)** stack with a server-side EJS templating architecture, it features secure authentication, media uploads, database persistence, and a dynamic booking/pricing engine.
+
+🌐 **Live Application:** [https://rentra-ila8.onrender.com/listings](https://rentra-ila8.onrender.com/listings)
 
 ---
 
@@ -83,6 +86,60 @@ rentra/
 ├── schema.js             # Joi request validation schemas
 ├── package.json          # Dependency scripts and node configurations
 └── .env                  # Environment configurations (local-only)
+```
+
+---
+
+## 🗄️ Database Schema Design
+
+The application utilizes MongoDB to store listings, reviews, bookings, and user authentication data. Below is the Entity-Relationship Diagram (ERD) mapping the schemas and their relationships:
+
+```mermaid
+erDiagram
+    USER ||--o{ LISTING : "owns"
+    USER ||--o{ REVIEW : "writes"
+    USER ||--o{ BOOKING : "makes"
+    LISTING ||--o{ REVIEW : "has"
+    LISTING ||--o{ BOOKING : "receives"
+
+    USER {
+        ObjectId _id PK
+        string username
+        string email
+        string hash
+        string salt
+    }
+
+    LISTING {
+        ObjectId _id PK
+        string title
+        string description
+        object image
+        number price
+        string location
+        string country
+        string category
+        ObjectId owner FK
+    }
+
+    REVIEW {
+        ObjectId _id PK
+        string comment
+        number rating
+        date createdAt
+        ObjectId author FK
+    }
+
+    BOOKING {
+        ObjectId _id PK
+        ObjectId listing FK
+        ObjectId user FK
+        date checkIn
+        date checkOut
+        number guests
+        number totalPrice
+        date createdAt
+    }
 ```
 
 ---
