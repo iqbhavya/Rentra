@@ -80,14 +80,16 @@
     <% } %>
 </div>
 
+
+<!-- Tax switch button which is currently turned off will work on it later  -->
 <script>
-    // Tax Toggle switch script
+    
     let taxSwitch = document.getElementById("switchCheckDefault");
     taxSwitch.addEventListener("click", () => {
         let taxInfo = document.getElementsByClassName("tax-info");
         let toggleContainer = document.querySelector(".tax-toggle");
         
-        // Visual toggle container active class
+        
         toggleContainer.classList.toggle("active");
         
         for (let info of taxInfo) {

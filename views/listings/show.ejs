@@ -1,5 +1,5 @@
 <% layout("layouts/boilerplate") %>
-
+<!-- Calculates the ratings -->
 <% 
 let totalRating = 0;
 let validReviewsCount = 0;
@@ -35,9 +35,9 @@ if (reviewsCount > 0) {
 
     <!-- Details Grid -->
     <div class="details-layout">
-        <!-- Left Side: Property Info -->
+        
         <div class="property-info-col">
-            <!-- Host Card -->
+            
             <div class="host-section">
                 <div class="host-avatar">
                     <%= listing.owner.username.substring(0, 1).toUpperCase() %>
@@ -56,7 +56,7 @@ if (reviewsCount > 0) {
                 </p>
             </div>
 
-            <!-- Amenities (Visual Enhancement) -->
+            
             <div class="description-section">
                 <h5>What this place offers</h5>
                 <div class="row row-cols-md-2 row-cols-1 g-3 mt-1">
