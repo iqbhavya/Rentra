@@ -1,0 +1,180 @@
+<% layout("layouts/boilerplate") %>
+
+<style>
+    .otp-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+        margin-top: 2rem;
+    }
+    .otp-card {
+        border: none;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-soft);
+        background-color: #ffffff;
+        padding: 2.5rem;
+        max-width: 480px;
+        width: 100%;
+        text-align: center;
+    }
+    .otp-icon {
+        width: 70px;
+        height: 70px;
+        background-color: rgba(255, 56, 92, 0.1);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        border-radius: 50%;
+        margin: 0 auto 1.5rem auto;
+    }
+    .otp-inputs {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 2rem;
+    }
+    .otp-digit {
+        width: 55px;
+        height: 65px;
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-align: center;
+        border-radius: var(--border-radius-md);
+        border: 1.5px solid var(--border-light);
+        background-color: var(--bg-secondary);
+        color: var(--text-main);
+        transition: all var(--transition-speed) ease;
+    }
+    .otp-digit:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(255, 56, 92, 0.15) !important;
+        background-color: #ffffff;
+    }
+    .btn-verify {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        border-radius: var(--border-radius-md);
+        border: none;
+        padding: 14px;
+        font-size: 1.05rem;
+        width: 100%;
+        transition: all var(--transition-speed) ease;
+    }
+    .btn-verify:hover {
+        background-color: var(--primary-hover);
+        color: white;
+        transform: translateY(-1px);
+    }
+    .btn-verify:active {
+        transform: translateY(0);
+    }
+</style>
+
+<div class="otp-container">
+    <div class="otp-card">
+        <div class="otp-icon">
+            <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3 class="fw-bold mb-2">Verify your email</h3>
+        <p class="text-muted mb-1" style="font-size: 0.95rem;">We've sent a 6-digit verification code to</p>
+        <p class="fw-bold text-dark mb-4" style="font-size: 1rem;"><%= email %></p>
+
+        <form action="/verify-otp" method="POST" id="otp-form" novalidate class="needs-validation">
+            <input type="hidden" name="otp" id="otp-hidden">
+
+            <div class="otp-inputs">
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+                <input type="text" class="form-control otp-digit" maxlength="1" pattern="[0-9]" inputmode="numeric" required>
+            </div>
+
+            <button type="submit" class="btn-verify">
+                Confirm & Register
+            </button>
+        </form>
+
+        <div class="mt-4 pt-3 border-top">
+            <form action="/resend-otp" method="POST" class="m-0">
+                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                    Didn't receive the code? 
+                    <button type="submit" class="btn btn-link p-0 fw-semibold text-decoration-none" style="color: var(--primary-color); font-size: 0.9rem; vertical-align: baseline;">
+                        Resend Code
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const inputs = document.querySelectorAll(".otp-digit");
+        const form = document.getElementById("otp-form");
+        const hiddenInput = document.getElementById("otp-hidden");
+
+        // Focus first input automatically
+        inputs[0].focus();
+
+        inputs.forEach((input, index) => {
+            // Auto focus next input on input keypress
+            input.addEventListener("input", (e) => {
+                const target = e.target;
+                const val = target.value;
+
+                // Strip non-numbers
+                if (!/^[0-9]$/.test(val)) {
+                    target.value = "";
+                    return;
+                }
+
+                if (val && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace to focus previous input field
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace") {
+                    if (input.value === "" && index > 0) {
+                        inputs[index - 1].focus();
+                    } else {
+                        input.value = "";
+                    }
+                }
+            });
+
+            // Allow pasting 6 digit code directly
+            input.addEventListener("paste", (e) => {
+                const pasteData = e.clipboardData.getData("text").trim();
+                if (/^[0-9]{6}$/.test(pasteData)) {
+                    inputs.forEach((inp, idx) => {
+                        inp.value = pasteData[idx];
+                    });
+                    inputs[inputs.length - 1].focus();
+                }
+                e.preventDefault();
+            });
+        });
+
+        // Compile input values into hidden field on form submit
+        form.addEventListener("submit", (e) => {
+            let fullOtp = "";
+            inputs.forEach(inp => {
+                fullOtp += inp.value;
+            });
+            hiddenInput.value = fullOtp;
+
+            if (fullOtp.length !== 6) {
+                e.preventDefault();
+                alert("Please enter the complete 6-digit verification code.");
+            }
+        });
+    });
+</script>

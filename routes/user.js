@@ -15,6 +15,12 @@ router.route("/login")
 .get(usersController.renderLoginForm)
 .post(saveRedirectUrl, passport.authenticate("local",{failureRedirect: "/login", faliureFlash: true}),wrapAsync(usersController.login));
 
+router.route("/verify-otp")
+.get(usersController.renderVerifyOtpForm)
+.post(wrapAsync(usersController.verifyOtp));
+
+router.post("/resend-otp", wrapAsync(usersController.resendOtp));
+
 router.get("/logout", usersController.logoutForm);
 
 module.exports = router;
