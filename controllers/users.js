@@ -1,27 +1,20 @@
 const User = require('../models/user.js');
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 
 const sendOtpEmail = async (email, otp) => {
-    const smtpUser = process.env.EMAIL_USER;
-    const smtpPass = process.env.EMAIL_PASS;
+    const resendApiKey = process.env.RESEND_API_KEY;
 
-    
+
     console.log(`🔑 OTP generated for ${email}: ${otp}`);
-    
 
-    if (smtpUser && smtpPass) {
+
+    if (resendApiKey) {
         try {
-            const transporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: smtpUser,
-                    pass: smtpPass
-                }
-            });
+            const resend = new Resend(resendApiKey);
 
-            const mailOptions = {
-                from: `"Rentra Support" <${smtpUser}>`,
+            await resend.emails.send({
+                from: "Rentra Support <onboarding@resend.dev>",
                 to: email,
                 subject: "Verify Your Email - Rentra",
                 html: `
@@ -42,15 +35,14 @@ const sendOtpEmail = async (email, otp) => {
                         </div>
                     </div>
                 `
-            };
+            });
 
-            await transporter.sendMail(mailOptions);
             console.log(`📧 OTP email successfully sent to ${email}`);
         } catch (error) {
-            console.error("❌ Error sending OTP email via SMTP:", error);
+            console.error("❌ Error sending OTP email via Resend API:", error);
         }
     } else {
-        console.log("ℹ️ SMTP credentials not fully configured in environment (.env). Code logged above for local testing.");
+        console.log("⚠️ Resend API key not configured in environment (.env). Code logged above for local testing.");
     }
 };
 
@@ -63,8 +55,8 @@ module.exports.signUp = async (req, res) => {
         let { username, email, password } = req.body;
 
         // Check if username or email already exists
-        const existingUser = await User.findOne({ 
-            $or: [{ username }, { email }] 
+        const existingUser = await User.findOne({
+            $or: [{ username }, { email }]
         });
 
         if (existingUser) {
