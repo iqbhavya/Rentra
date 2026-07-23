@@ -1,331 +1,380 @@
 <% layout("layouts/boilerplate") %>
-<!-- Calculates the ratings -->
-<% 
-let totalRating = 0;
-let validReviewsCount = 0;
-let avgRating = "New";
-let reviewsCount = listing.reviews.length;
-if (reviewsCount > 0) {
-    for (let rev of listing.reviews) {
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Calculates the ratings -->
+    <% let totalRating=0; let validReviewsCount=0; let avgRating="New" ; let reviewsCount=listing.reviews.length; if
+        (reviewsCount> 0) {
+        for (let rev of listing.reviews) {
         if (rev && typeof rev.rating === "number") {
-            totalRating += rev.rating;
-            validReviewsCount++;
+        totalRating += rev.rating;
+        validReviewsCount++;
         }
-    }
-    if (validReviewsCount > 0) {
+        }
+        if (validReviewsCount > 0) {
         avgRating = (totalRating / validReviewsCount).toFixed(1);
-    }
-}
-%>
+        }
+        }
+        %>
 
-<div class="show-container">
-    <!-- Header -->
-    <div class="show-header">
-        <h3 class="show-title"><%= listing.title %></h3>
-        <div class="show-meta-info">
-            <span><i class="fa-solid fa-star <%= avgRating === 'New' ? 'text-muted' : 'text-warning' %>"></i> <%= avgRating %><%= reviewsCount > 0 ? ' · ' + reviewsCount + ' ' + (reviewsCount > 1 ? 'reviews' : 'review') : '' %></span>
-            <span><i class="fa-solid fa-location-dot"></i> <%= listing.location %>, <%= listing.country %></span>
-        </div>
-    </div>
-
-    <!-- Gallery Image -->
-    <div class="show-gallery">
-        <img src="<%= listing.image.url %>" class="show-image" alt="<%= listing.title %> - Property Listing Image">
-    </div>
-
-    <!-- Details Grid -->
-    <div class="details-layout">
-        
-        <div class="property-info-col">
-            
-            <div class="host-section">
-                <div class="host-avatar">
-                    <%= listing.owner.username.substring(0, 1).toUpperCase() %>
-                </div>
-                <div class="host-info">
-                    <h4>Hosted by <%= listing.owner.username %></h4>
-                    <p>Superhost · Joined in 2026</p>
+        <div class="show-container">
+            <!-- Header -->
+            <div class="show-header">
+                <h3 class="show-title">
+                    <%= listing.title %>
+                </h3>
+                <div class="show-meta-info">
+                    <span><i class="fa-solid fa-star <%= avgRating === 'New' ? 'text-muted' : 'text-warning' %>"></i>
+                        <%= avgRating %>
+                            <%= reviewsCount> 0 ? ' · ' + reviewsCount + ' ' + (reviewsCount > 1 ? 'reviews' : 'review')
+                                : '' %>
+                    </span>
+                    <span><i class="fa-solid fa-location-dot"></i>
+                        <%= listing.location %>, <%= listing.country %>
+                    </span>
                 </div>
             </div>
 
-            <!-- Description -->
-            <div class="description-section">
-                <h5>About this home</h5>
-                <p class="description-text">
-                    <%= listing.description %>
-                </p>
+            <!-- Gallery Image -->
+            <div class="show-gallery">
+                <img src="<%= listing.image.url %>" class="show-image"
+                    alt="<%= listing.title %> - Property Listing Image">
             </div>
 
-            
-            <div class="description-section">
-                <h5>What this place offers</h5>
-                <div class="row row-cols-md-2 row-cols-1 g-3 mt-1">
-                    <div class="col d-flex align-items-center gap-3"><i class="fa-solid fa-wifi text-muted fs-5"></i> <span>Fast wifi</span></div>
-                    <div class="col d-flex align-items-center gap-3"><i class="fa-solid fa-kitchen-set text-muted fs-5"></i> <span>Kitchen equipped</span></div>
-                    <div class="col d-flex align-items-center gap-3"><i class="fa-solid fa-car text-muted fs-5"></i> <span>Free parking on premises</span></div>
-                    <div class="col d-flex align-items-center gap-3"><i class="fa-solid fa-snowflake text-muted fs-5"></i> <span>Air conditioning</span></div>
-                </div>
-            </div>
+            <!-- Details Grid -->
+            <div class="details-layout">
 
-            <!-- Edit/Delete Action Buttons for Listing Owner -->
-            <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
-                <div class="btns">
-                    <a href="/listings/<%= listing._id %>/edit" class="btn btn-theme-edit">Edit Listing</a>
-                    <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="m-0">
-                        <button type="submit" class="btn btn-theme-delete">Delete Listing</button>
-                    </form>
-                </div>
-            <% } %>
+                <div class="property-info-col">
 
-            <!-- Reviews Display Section -->
-            <div class="review-section">
-                <% if(listing.reviews.length > 0) { %>
-                    <h4>Guest Reviews</h4>
-                    <div class="reviews-grid">
-                        <% for(let review of listing.reviews) { %>
-                            <div class="review-card">
-                                <div>
-                                    <div class="review-author-info">
-                                        <div class="review-avatar">
-                                            <%= review.author.username.substring(0, 1).toUpperCase() %>
-                                        </div>
-                                        <div>
-                                            <h6 class="review-author-name"><%= review.author.username %></h6>
-                                            <small class="text-muted">July 2026</small>
-                                        </div>
-                                    </div>
-                                    <div class="review-stars">
-                                        <% for(let i = 1; i <= 5; i++) { %>
-                                            <span style="color: <%= i <= review.rating ? '#f5a623' : '#e0e0e0' %>"><i class="fa-solid fa-star"></i></span>
-                                        <% } %>
-                                    </div>
-                                    <p class="review-comment">
-                                        "<%= review.comment %>"
-                                    </p>
-                                </div>
-                                <% if(currUser && currUser._id.equals(review.author._id)){ %>
-                                    <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" class="mt-2 m-0">
-                                        <button type="submit" class="delete-review-btn">Delete</button>
-                                    </form>
-                                <% } %>
+                    <div class="host-section">
+                        <div class="host-avatar">
+                            <%= listing.owner.username.substring(0, 1).toUpperCase() %>
+                        </div>
+                        <div class="host-info">
+                            <h4>Hosted by <%= listing.owner.username %>
+                            </h4>
+                            <p>Superhost · Joined in 2026</p>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="description-section">
+                        <h5>About this home</h5>
+                        <p class="description-text">
+                            <%= listing.description %>
+                        </p>
+                    </div>
+
+
+                    <div class="description-section">
+                        <h5>What this place offers</h5>
+                        <div class="row row-cols-md-2 row-cols-1 g-3 mt-1">
+                            <div class="col d-flex align-items-center gap-3"><i
+                                    class="fa-solid fa-wifi text-muted fs-5"></i> <span>Fast wifi</span></div>
+                            <div class="col d-flex align-items-center gap-3"><i
+                                    class="fa-solid fa-kitchen-set text-muted fs-5"></i> <span>Kitchen equipped</span>
                             </div>
+                            <div class="col d-flex align-items-center gap-3"><i
+                                    class="fa-solid fa-car text-muted fs-5"></i> <span>Free parking on premises</span>
+                            </div>
+                            <div class="col d-flex align-items-center gap-3"><i
+                                    class="fa-solid fa-snowflake text-muted fs-5"></i> <span>Air conditioning</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit/Delete Action Buttons for Listing Owner -->
+                    <% if(currUser && currUser._id.equals(listing.owner._id)){ %>
+                        <div class="btns">
+                            <a href="/listings/<%= listing._id %>/edit" class="btn btn-theme-edit">Edit Listing</a>
+                            <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="m-0">
+                                <button type="submit" class="btn btn-theme-delete">Delete Listing</button>
+                            </form>
+                        </div>
                         <% } %>
-                    </div>
-                <% } else { %>
-                    <p class="text-muted italic">No reviews yet for this listing. Be the first to leave a review below!</p>
-                <% } %>
-            </div>
 
-            <!-- Leave a Review Form -->
-            <% if(currUser) { %>
-                <div class="review-section border-0 pt-0">
-                    <h4>Leave a Review</h4>
-                    <form action="/listings/<%= listing.id %>/reviews" method="POST" novalidate class="needs-validation">
-                        <input type="hidden" name="review[rating]" id="hiddenRating" value="1">
-                        
-                        <div class="mb-3">
-                            <label class="rating-label">Rating</label>
-                            <div id="stars">
-                                <span data-val="1"><i class="fa-solid fa-star"></i></span>
-                                <span data-val="2"><i class="fa-solid fa-star"></i></span>
-                                <span data-val="3"><i class="fa-solid fa-star"></i></span>
-                                <span data-val="4"><i class="fa-solid fa-star"></i></span>
-                                <span data-val="5"><i class="fa-solid fa-star"></i></span>
+                            <!-- Reviews Display Section -->
+                            <div class="review-section">
+                                <% if(listing.reviews.length> 0) { %>
+                                    <h4>Guest Reviews</h4>
+                                    <div class="reviews-grid">
+                                        <% for(let review of listing.reviews) { %>
+                                            <div class="review-card">
+                                                <div>
+                                                    <div class="review-author-info">
+                                                        <div class="review-avatar">
+                                                            <%= review.author.username.substring(0, 1).toUpperCase() %>
+                                                        </div>
+                                                        <div>
+                                                            <h6 class="review-author-name">
+                                                                <%= review.author.username %>
+                                                            </h6>
+                                                            <small class="text-muted">July 2026</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="review-stars">
+                                                        <% for(let i=1; i <=5; i++) { %>
+                                                            <span
+                                                                style="color: <%= i <= review.rating ? '#f5a623' : '#e0e0e0' %>"><i
+                                                                    class="fa-solid fa-star"></i></span>
+                                                            <% } %>
+                                                    </div>
+                                                    <p class="review-comment">
+                                                        "<%= review.comment %>"
+                                                    </p>
+                                                </div>
+                                                <% if(currUser && currUser._id.equals(review.author._id)){ %>
+                                                    <form method="POST"
+                                                        action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE"
+                                                        class="mt-2 m-0">
+                                                        <button type="submit" class="delete-review-btn">Delete</button>
+                                                    </form>
+                                                    <% } %>
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                    <% } else { %>
+                                        <p class="text-muted italic">No reviews yet for this listing. Be the first to
+                                            leave a review below!</p>
+                                        <% } %>
+                            </div>
+
+                            <!-- Leave a Review Form -->
+                            <% if(currUser) { %>
+                                <div class="review-section border-0 pt-0">
+                                    <h4>Leave a Review</h4>
+                                    <form action="/listings/<%= listing.id %>/reviews" method="POST" novalidate
+                                        class="needs-validation">
+                                        <input type="hidden" name="review[rating]" id="hiddenRating" value="1">
+
+                                        <div class="mb-3">
+                                            <label class="rating-label">Rating</label>
+                                            <div id="stars">
+                                                <span data-val="1"><i class="fa-solid fa-star"></i></span>
+                                                <span data-val="2"><i class="fa-solid fa-star"></i></span>
+                                                <span data-val="3"><i class="fa-solid fa-star"></i></span>
+                                                <span data-val="4"><i class="fa-solid fa-star"></i></span>
+                                                <span data-val="5"><i class="fa-solid fa-star"></i></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="comment" class="rating-label">Comments</label>
+                                            <textarea name="review[comment]" id="comment" cols="30" rows="4"
+                                                class="form-control form-control-review" required
+                                                placeholder="Write your review comments here..."></textarea>
+                                            <div class="invalid-feedback">Please add some comments for the review</div>
+                                        </div>
+
+                                        <button class="review-submit-btn">Submit Review</button>
+                                    </form>
+                                </div>
+                                <% } %>
+                </div>
+
+                <!-- Right Side: Booking Box Card -->
+                <div class="booking-reservation-col">
+                    <form action="/listings/<%= listing._id %>/bookings" method="POST" class="reservation-card">
+                        <input type="hidden" name="booking[totalPrice]" id="hiddenTotalPrice" value="0">
+
+                        <div class="reservation-price-row">
+                            <div class="reservation-price">
+                                &#8377; <%= listing.price.toLocaleString("en-IN") %> <span>/ night</span>
+                            </div>
+                            <div class="reservation-rating" style="font-size: 0.9rem; font-weight: 600;">
+                                <i
+                                    class="fa-solid fa-star <%= avgRating === 'New' ? 'text-muted' : 'text-warning' %>"></i>
+                                <%= avgRating %>
+                                    <%= reviewsCount> 0 ? ' · ' + reviewsCount + ' ' + (reviewsCount > 1 ? 'reviews' :
+                                        'review') : '' %>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="comment" class="rating-label">Comments</label>
-                            <textarea name="review[comment]" id="comment" cols="30" rows="4" class="form-control form-control-review" required placeholder="Write your review comments here..."></textarea>
-                            <div class="invalid-feedback">Please add some comments for the review</div>
+                        <div class="reservation-card-inputs">
+                            <div class="reservation-card-row">
+                                <div class="reservation-card-cell">
+                                    <label for="checkin-date">Check-in</label>
+                                    <input type="date" name="booking[checkIn]" id="checkin-date" required>
+                                </div>
+                                <div class="reservation-card-cell">
+                                    <label for="checkout-date">Checkout</label>
+                                    <input type="date" name="booking[checkOut]" id="checkout-date" required>
+                                </div>
+                            </div>
+                            <div class="reservation-card-guests">
+                                <label for="guests-count">Guests</label>
+                                <select name="booking[guests]" id="guests-count" class="form-select">
+                                    <option value="1">1 guest</option>
+                                    <option value="2" selected>2 guests</option>
+                                    <option value="3">3 guests</option>
+                                    <option value="4">4 guests</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <button class="review-submit-btn">Submit Review</button>
+                        <% if (currUser) { %>
+                            <button type="submit" class="reserve-btn" id="reserve-btn">Reserve</button>
+                            <% } else { %>
+                                <a href="/login" class="reserve-btn btn text-center d-block text-decoration-none">Login
+                                    to Reserve</a>
+                                <% } %>
+
+                                    <div id="price-calculations" style="display: none;">
+                                        <p class="text-center text-muted mt-2 mb-3" style="font-size: 0.8rem;">You won't
+                                            be charged yet</p>
+
+                                        <div class="reservation-charge-list">
+                                            <div class="reservation-charge-item">
+                                                <span>&#8377; <%= listing.price.toLocaleString("en-IN") %> x <span
+                                                            id="calc-nights">0</span> nights</span>
+                                                <span>&#8377; <span id="calc-subtotal">0</span></span>
+                                            </div>
+                                            <div class="reservation-charge-item">
+                                                <span>Cleaning fee</span>
+                                                <span>&#8377; 1,200</span>
+                                            </div>
+                                            <div class="reservation-charge-item">
+                                                <span>Rentra service fee (5%)</span>
+                                                <span>&#8377; <span id="calc-service">0</span></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="reservation-charge-item total mb-0">
+                                            <span>Total before taxes</span>
+                                            <span>&#8377; <span id="calc-total">0</span></span>
+                                        </div>
+                                    </div>
+
+                                    <div id="date-error" class="text-danger text-center mt-2"
+                                        style="font-size: 0.85rem; display: none; font-weight: 600;">
+                                        Checkout date must be after check-in date.
+                                    </div>
                     </form>
                 </div>
-            <% } %>
-        </div>
 
-        <!-- Right Side: Booking Box Card -->
-        <div class="booking-reservation-col">
-            <form action="/listings/<%= listing._id %>/bookings" method="POST" class="reservation-card">
-                <input type="hidden" name="booking[totalPrice]" id="hiddenTotalPrice" value="0">
-                
-                <div class="reservation-price-row">
-                    <div class="reservation-price">
-                        &#8377; <%= listing.price.toLocaleString("en-IN") %> <span>/ night</span>
-                    </div>
-                    <div class="reservation-rating" style="font-size: 0.9rem; font-weight: 600;">
-                        <i class="fa-solid fa-star <%= avgRating === 'New' ? 'text-muted' : 'text-warning' %>"></i> <%= avgRating %><%= reviewsCount > 0 ? ' · ' + reviewsCount + ' ' + (reviewsCount > 1 ? 'reviews' : 'review') : '' %>
-                    </div>
-                </div>
+                <script>
+                    (function () {
+                        const price = <%= listing.price %>;
+                        const checkinInput = document.getElementById("checkin-date");
+                        const checkoutInput = document.getElementById("checkout-date");
+                        const guestsInput = document.getElementById("guests-count");
+                        const reserveBtn = document.getElementById("reserve-btn");
+                        const dateError = document.getElementById("date-error");
 
-                <div class="reservation-card-inputs">
-                    <div class="reservation-card-row">
-                        <div class="reservation-card-cell">
-                            <label for="checkin-date">Check-in</label>
-                            <input type="date" name="booking[checkIn]" id="checkin-date" required>
-                        </div>
-                        <div class="reservation-card-cell">
-                            <label for="checkout-date">Checkout</label>
-                            <input type="date" name="booking[checkOut]" id="checkout-date" required>
-                        </div>
-                    </div>
-                    <div class="reservation-card-guests">
-                        <label for="guests-count">Guests</label>
-                        <select name="booking[guests]" id="guests-count" class="form-select">
-                            <option value="1">1 guest</option>
-                            <option value="2" selected>2 guests</option>
-                            <option value="3">3 guests</option>
-                            <option value="4">4 guests</option>
-                        </select>
-                    </div>
-                </div>
+                        const calcNightsEl = document.getElementById("calc-nights");
+                        const calcSubtotalEl = document.getElementById("calc-subtotal");
+                        const calcServiceEl = document.getElementById("calc-service");
+                        const calcTotalEl = document.getElementById("calc-total");
+                        const hiddenPriceEl = document.getElementById("hiddenTotalPrice");
+                        const calculationsSection = document.getElementById("price-calculations");
 
-                <% if (currUser) { %>
-                    <button type="submit" class="reserve-btn" id="reserve-btn">Reserve</button>
-                <% } else { %>
-                    <a href="/login" class="reserve-btn btn text-center d-block text-decoration-none">Login to Reserve</a>
-                <% } %>
+                        // Initialize dates: tomorrow & day after tomorrow
+                        const today = new Date();
+                        const tomorrow = new Date(today);
+                        tomorrow.setDate(tomorrow.getDate() + 1);
 
-                <div id="price-calculations" style="display: none;">
-                    <p class="text-center text-muted mt-2 mb-3" style="font-size: 0.8rem;">You won't be charged yet</p>
+                        const dayAfter = new Date(tomorrow);
+                        dayAfter.setDate(dayAfter.getDate() + 2);
 
-                    <div class="reservation-charge-list">
-                        <div class="reservation-charge-item">
-                            <span>&#8377; <%= listing.price.toLocaleString("en-IN") %> x <span id="calc-nights">0</span> nights</span>
-                            <span>&#8377; <span id="calc-subtotal">0</span></span>
-                        </div>
-                        <div class="reservation-charge-item">
-                            <span>Cleaning fee</span>
-                            <span>&#8377; 1,200</span>
-                        </div>
-                        <div class="reservation-charge-item">
-                            <span>Rentra service fee (5%)</span>
-                            <span>&#8377; <span id="calc-service">0</span></span>
-                        </div>
-                    </div>
+                        const formatDate = (date) => {
+                            let month = '' + (date.getMonth() + 1);
+                            let day = '' + date.getDate();
+                            let year = date.getFullYear();
 
-                    <div class="reservation-charge-item total mb-0">
-                        <span>Total before taxes</span>
-                        <span>&#8377; <span id="calc-total">0</span></span>
-                    </div>
-                </div>
-                
-                <div id="date-error" class="text-danger text-center mt-2" style="font-size: 0.85rem; display: none; font-weight: 600;">
-                    Checkout date must be after check-in date.
-                </div>
-            </form>
+                            if (month.length < 2) month = '0' + month;
+                            if (day.length < 2) day = '0' + day;
+
+                            return [year, month, day].join('-');
+                        };
+
+                        checkinInput.value = formatDate(tomorrow);
+                        checkinInput.min = formatDate(tomorrow);
+
+                        checkoutInput.value = formatDate(dayAfter);
+                        checkoutInput.min = formatDate(dayAfter);
+
+                        const updatePrice = () => {
+                            const checkinVal = checkinInput.value;
+                            const checkoutVal = checkoutInput.value;
+
+                            if (!checkinVal || !checkoutVal) {
+                                calculationsSection.style.display = "none";
+                                return;
+                            }
+
+                            const checkinDate = new Date(checkinVal);
+                            const checkoutDate = new Date(checkoutVal);
+
+                            const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
+                            const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+                            if (diffDays <= 0) {
+                                dateError.style.display = "block";
+                                calculationsSection.style.display = "none";
+                                if (reserveBtn) reserveBtn.disabled = true;
+                            } else {
+                                dateError.style.display = "none";
+                                calculationsSection.style.display = "block";
+                                if (reserveBtn) reserveBtn.disabled = false;
+
+                                // Extra guest charge: ₹500 per extra guest per night beyond 2 guests
+                                const guestsCount = parseInt(guestsInput.value) || 2;
+                                const extraGuestFee = guestsCount > 2 ? (guestsCount - 2) * 500 * diffDays : 0;
+
+                                const subtotal = (price * diffDays) + extraGuestFee;
+                                const cleaningFee = 1200;
+                                const serviceFee = Math.round(subtotal * 0.05);
+                                const total = subtotal + cleaningFee + serviceFee;
+
+                                calcNightsEl.textContent = diffDays;
+                                // Render break-down context if extra guests are added
+                                if (guestsCount > 2) {
+                                    calcSubtotalEl.innerHTML = `${subtotal.toLocaleString("en-IN")} <small class="text-muted">(incl. ₹500/night extra guest fee)</small>`;
+                                } else {
+                                    calcSubtotalEl.textContent = subtotal.toLocaleString("en-IN");
+                                }
+                                calcServiceEl.textContent = serviceFee.toLocaleString("en-IN");
+                                calcTotalEl.textContent = total.toLocaleString("en-IN");
+                                hiddenPriceEl.value = total;
+                            }
+                        };
+
+                        checkinInput.addEventListener("change", () => {
+                            const checkinVal = checkinInput.value;
+                            if (checkinVal) {
+                                const minCheckoutDate = new Date(checkinVal);
+                                minCheckoutDate.setDate(minCheckoutDate.getDate() + 1);
+                                checkoutInput.min = formatDate(minCheckoutDate);
+                                if (new Date(checkoutInput.value) <= new Date(checkinVal)) {
+                                    checkoutInput.value = formatDate(minCheckoutDate);
+                                }
+                            }
+                            updatePrice();
+                        });
+
+                        checkoutInput.addEventListener("change", updatePrice);
+                        guestsInput.addEventListener("change", updatePrice);
+
+                        // Trigger initial pricing load
+                        updatePrice();
+                    })();
+                </script>
+            </div>
+
+
+            <div class="map-container-section">
+                <h4>Where you'll be</h4>
+                <p class="map-location-text"><i class="fa-solid fa-location-dot"></i>
+                    <%= listing.location %>, <%= listing.country %>
+                </p>
+                <div id="map"></div>
+            </div>
         </div>
 
         <script>
-            (function() {
-                const price = <%= listing.price %>;
-                const checkinInput = document.getElementById("checkin-date");
-                const checkoutInput = document.getElementById("checkout-date");
-                const guestsInput = document.getElementById("guests-count");
-                const reserveBtn = document.getElementById("reserve-btn");
-                const dateError = document.getElementById("date-error");
-                
-                const calcNightsEl = document.getElementById("calc-nights");
-                const calcSubtotalEl = document.getElementById("calc-subtotal");
-                const calcServiceEl = document.getElementById("calc-service");
-                const calcTotalEl = document.getElementById("calc-total");
-                const hiddenPriceEl = document.getElementById("hiddenTotalPrice");
-                const calculationsSection = document.getElementById("price-calculations");
-
-                // Initialize dates: tomorrow & day after tomorrow
-                const today = new Date();
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                
-                const dayAfter = new Date(tomorrow);
-                dayAfter.setDate(dayAfter.getDate() + 2);
-
-                const formatDate = (date) => {
-                    let month = '' + (date.getMonth() + 1);
-                    let day = '' + date.getDate();
-                    let year = date.getFullYear();
-
-                    if (month.length < 2) month = '0' + month;
-                    if (day.length < 2) day = '0' + day;
-
-                    return [year, month, day].join('-');
-                };
-
-                checkinInput.value = formatDate(tomorrow);
-                checkinInput.min = formatDate(tomorrow);
-                
-                checkoutInput.value = formatDate(dayAfter);
-                checkoutInput.min = formatDate(dayAfter);
-
-                const updatePrice = () => {
-                    const checkinVal = checkinInput.value;
-                    const checkoutVal = checkoutInput.value;
-                    
-                    if (!checkinVal || !checkoutVal) {
-                        calculationsSection.style.display = "none";
-                        return;
-                    }
-
-                    const checkinDate = new Date(checkinVal);
-                    const checkoutDate = new Date(checkoutVal);
-                    
-                    const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
-                    const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
-                    
-                    if (diffDays <= 0) {
-                        dateError.style.display = "block";
-                        calculationsSection.style.display = "none";
-                        if (reserveBtn) reserveBtn.disabled = true;
-                    } else {
-                        dateError.style.display = "none";
-                        calculationsSection.style.display = "block";
-                        if (reserveBtn) reserveBtn.disabled = false;
-                        
-                        // Extra guest charge: ₹500 per extra guest per night beyond 2 guests
-                        const guestsCount = parseInt(guestsInput.value) || 2;
-                        const extraGuestFee = guestsCount > 2 ? (guestsCount - 2) * 500 * diffDays : 0;
-
-                        const subtotal = (price * diffDays) + extraGuestFee;
-                        const cleaningFee = 1200;
-                        const serviceFee = Math.round(subtotal * 0.05);
-                        const total = subtotal + cleaningFee + serviceFee;
-                        
-                        calcNightsEl.textContent = diffDays;
-                        // Render break-down context if extra guests are added
-                        if (guestsCount > 2) {
-                            calcSubtotalEl.innerHTML = `${subtotal.toLocaleString("en-IN")} <small class="text-muted">(incl. ₹500/night extra guest fee)</small>`;
-                        } else {
-                            calcSubtotalEl.textContent = subtotal.toLocaleString("en-IN");
-                        }
-                        calcServiceEl.textContent = serviceFee.toLocaleString("en-IN");
-                        calcTotalEl.textContent = total.toLocaleString("en-IN");
-                        hiddenPriceEl.value = total;
-                    }
-                };
-
-                checkinInput.addEventListener("change", () => {
-                    const checkinVal = checkinInput.value;
-                    if (checkinVal) {
-                        const minCheckoutDate = new Date(checkinVal);
-                        minCheckoutDate.setDate(minCheckoutDate.getDate() + 1);
-                        checkoutInput.min = formatDate(minCheckoutDate);
-                        if (new Date(checkoutInput.value) <= new Date(checkinVal)) {
-                            checkoutInput.value = formatDate(minCheckoutDate);
-                        }
-                    }
-                    updatePrice();
-                });
-
-                checkoutInput.addEventListener("change", updatePrice);
-                guestsInput.addEventListener("change", updatePrice);
-                
-                // Trigger initial pricing load
-                updatePrice();
-            })();
+            const coordinates = <%- JSON.stringify(listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates : [77.209, 28.6139]) %>;
+            const listingTitle = "<%= listing.title %>";
         </script>
-    </div>
-</div>
-
-<script src="/js/review.js"></script>
+        <script src="/js/map.js"></script>
+        <script src="/js/review.js"></script>

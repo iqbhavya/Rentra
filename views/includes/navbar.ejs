@@ -4,55 +4,63 @@
       <i class="fa-regular fa-compass"></i>
       <span>rentra</span>
     </a>
-    
+
     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
       aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    
+
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav me-auto">
         <a class="nav-link" href="/listings">Explore</a>
       </div>
-      
+
       <!-- Central Search Bar -->
       <div class="navbar-nav mx-auto">
         <form class="search-form-container" role="search" action="/listings/search" method="GET">
-          <input name="q" class="search-input" type="search" placeholder="Search destinations" aria-label="Search" required />
+          <input name="q" class="search-input" type="search" placeholder="Search destinations" aria-label="Search"
+            required />
           <button class="btn btn-search" type="submit">
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
         </form>
       </div>
-      
+
       <!-- User / Auth Links -->
       <div class="navbar-nav ms-auto align-items-center gap-2">
         <a class="nav-link d-none d-md-block" href="/listings/new">Rentra your home</a>
-        
+
         <% if(!currUser) { %>
           <a class="nav-link" href="/signup"><b>Sign up</b></a>
           <a class="nav-link" href="/login"><b>Login</b></a>
-        <% } %>
-        
-        <% if(currUser) { %>
-          <div class="dropdown">
-            <div class="user-nav-pill" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fa-solid fa-bars text-muted"></i>
-              <div class="user-avatar">
-                <%= currUser.username.substring(0, 1).toUpperCase() %>
+          <% } %>
+
+            <% if(currUser) { %>
+              <div class="dropdown">
+                <div class="user-nav-pill" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown"
+                  aria-expanded="false">
+                  <i class="fa-solid fa-bars text-muted"></i>
+                  <div class="user-avatar">
+                    <%= currUser.username.substring(0, 1).toUpperCase() %>
+                  </div>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2 p-2"
+                  aria-labelledby="navbarUserDropdown" style="border-radius: 12px; min-width: 200px;">
+                  <li><span class="dropdown-item-text fw-bold text-dark mb-1">Welcome, <%= currUser.username %>!</span>
+                  </li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li><a class="dropdown-item rounded" href="/bookings">My Bookings</a></li>
+                  <li><a class="dropdown-item rounded" href="/listings/new">Rentra your home</a></li>
+                  <li><a class="dropdown-item rounded" href="/listings">Explore all properties</a></li>
+                  <li>
+                    <hr class="dropdown-divider">
+                  </li>
+                  <li><a class="dropdown-item rounded text-danger fw-semibold" href="/logout">Logout</a></li>
+                </ul>
               </div>
-            </div>
-            <ul class="dropdown-menu dropdown-menu-end border-0 shadow mt-2 p-2" aria-labelledby="navbarUserDropdown" style="border-radius: 12px; min-width: 200px;">
-              <li><span class="dropdown-item-text fw-bold text-dark mb-1">Welcome, <%= currUser.username %>!</span></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item rounded" href="/bookings">My Bookings</a></li>
-              <li><a class="dropdown-item rounded" href="/listings/new">Rentra your home</a></li>
-              <li><a class="dropdown-item rounded" href="/listings">Explore all properties</a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item rounded text-danger fw-semibold" href="/logout">Logout</a></li>
-            </ul>
-          </div>
-        <% } %>
+              <% } %>
       </div>
     </div>
   </div>

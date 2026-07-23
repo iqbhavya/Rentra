@@ -39,14 +39,33 @@ module.exports.showListings = async (req, res) => {
 
 
 module.exports.createListing = async (req, res, next) => {
-
     let url = req.file.path;
     let filename = req.file.filename;
-
 
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
     newListing.image = { filename, url };
+
+    
+    let query = `${req.body.listing.location}, ${req.body.listing.country}`;
+    let geometry = { type: "Point", coordinates: [77.209, 28.6139] }; // Fallback: New Delhi
+    try {
+        let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+            headers: {
+                'User-Agent': 'RentraWebDevApp/1.0'
+            }
+        });
+        let data = await response.json();
+        if (data && data.length > 0) {
+            geometry = {
+                type: "Point",
+                coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
+            };
+        }
+    } catch (err) {
+        console.error("Geocoding error during creation:", err);
+    }
+    newListing.geometry = geometry;
 
     await newListing.save();
     req.flash("success", "New Listing Created!");
@@ -69,9 +88,28 @@ module.exports.renderEditForm = async (req, res) => {
 module.exports.updateListing = async (req, res) => {
     let { id } = req.params;
 
-    
+    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing }, { new: true });
 
-    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing });
+    // Geocoding update
+    let query = `${listing.location}, ${listing.country}`;
+    try {
+        let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
+            headers: {
+                'User-Agent': 'RentraWebDevApp/1.0'
+            }
+        });
+        let data = await response.json();
+        if (data && data.length > 0) {
+            listing.geometry = {
+                type: "Point",
+                coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
+            };
+            await listing.save();
+        }
+    } catch (err) {
+        console.error("Geocoding error during update:", err);
+    }
+
     if (typeof req.file !== "undefined") {
         let url = req.file.path;
         let filename = req.file.filename;
