@@ -1,48 +1,66 @@
 const User = require('../models/user.js');
-const { Resend } = require("resend");
 
 
 const sendOtpEmail = async (email, otp) => {
-    const resendApiKey = process.env.RESEND_API_KEY;
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    const senderEmail = process.env.EMAIL_USER || "firewithin2520@gmail.com";
 
 
     console.log(`🔑 OTP generated for ${email}: ${otp}`);
 
 
-    if (resendApiKey) {
+    if (brevoApiKey) {
         try {
-            const resend = new Resend(resendApiKey);
-
-            await resend.emails.send({
-                from: "Rentra Support <onboarding@resend.dev>",
-                to: email,
-                subject: "Verify Your Email - Rentra",
-                html: `
-                    <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                        <div style="text-align: center; border-bottom: 1px solid #eeeeee; padding-bottom: 20px;">
-                            <h2 style="color: #ff385c; margin: 0; font-size: 1.8rem; font-weight: 800;">Rentra</h2>
-                        </div>
-                        <div style="padding: 20px 0;">
-                            <p style="font-size: 1rem; color: #222222; margin-top: 0;">Hi there,</p>
-                            <p style="font-size: 1rem; color: #717171; line-height: 1.5;">Thank you for registering with Rentra. To complete your signup, please use the following One-Time Password (OTP) to verify your email address:</p>
-                            <div style="text-align: center; margin: 30px 0;">
-                                <span style="display: inline-block; background-color: #f7f7f7; color: #ff385c; font-size: 2.2rem; font-weight: 800; padding: 12px 30px; letter-spacing: 6px; border-radius: 8px; border: 1px solid #dddddd;">${otp}</span>
+            const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+                method: "POST",
+                headers: {
+                    "accept": "application/json",
+                    "api-key": brevoApiKey,
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    sender: {
+                        name: "Rentra Support",
+                        email: senderEmail
+                    },
+                    to: [
+                        {
+                            email: email
+                        }
+                    ],
+                    subject: "Verify Your Email - Rentra",
+                    htmlContent: `
+                        <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eeeeee; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <div style="text-align: center; border-bottom: 1px solid #eeeeee; padding-bottom: 20px;">
+                                <h2 style="color: #ff385c; margin: 0; font-size: 1.8rem; font-weight: 800;">Rentra</h2>
                             </div>
-                            <p style="font-size: 0.9rem; color: #717171; line-height: 1.5;">This OTP is valid for <strong>5 minutes</strong>. If you did not request this verification, please ignore this email.</p>
+                            <div style="padding: 20px 0;">
+                                <p style="font-size: 1rem; color: #222222; margin-top: 0;">Hi there,</p>
+                                <p style="font-size: 1rem; color: #717171; line-height: 1.5;">Thank you for registering with Rentra. To complete your signup, please use the following One-Time Password (OTP) to verify your email address:</p>
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <span style="display: inline-block; background-color: #f7f7f7; color: #ff385c; font-size: 2.2rem; font-weight: 800; padding: 12px 30px; letter-spacing: 6px; border-radius: 8px; border: 1px solid #dddddd;">${otp}</span>
+                                </div>
+                                <p style="font-size: 0.9rem; color: #717171; line-height: 1.5;">This OTP is valid for <strong>5 minutes</strong>. If you did not request this verification, please ignore this email.</p>
+                            </div>
+                            <div style="border-top: 1px solid #eeeeee; padding-top: 20px; text-align: center; font-size: 0.8rem; color: #b0b0b0;">
+                                &copy; 2026 Rentra Inc. All rights reserved.
+                            </div>
                         </div>
-                        <div style="border-top: 1px solid #eeeeee; padding-top: 20px; text-align: center; font-size: 0.8rem; color: #b0b0b0;">
-                            &copy; 2026 Rentra Inc. All rights reserved.
-                        </div>
-                    </div>
-                `
+                    `
+                })
             });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.message || `HTTP error ${response.status}`);
+            }
 
             console.log(`📧 OTP email successfully sent to ${email}`);
         } catch (error) {
-            console.error("❌ Error sending OTP email via Resend API:", error);
+            console.error("❌ Error sending OTP email via Brevo API:", error);
         }
     } else {
-        console.log("⚠️ Resend API key not configured in environment (.env). Code logged above for local testing.");
+        console.log("⚠️ Brevo API key not configured in environment (.env). Code logged above for local testing.");
     }
 };
 
