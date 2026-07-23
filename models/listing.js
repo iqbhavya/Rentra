@@ -42,8 +42,14 @@ const listingSchema = new Schema({
             type: [Number],
             required: true
         }
-    }
-});
+    },
+    priceHistory: [
+        {
+            price: { type: Number, required: true },
+            date: { type: Date, default: Date.now }
+        }
+    ]
+}, { timestamps: true });
 
 listingSchema.post("findOneAndDelete" , async (listing) => {
     if(listing){

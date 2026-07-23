@@ -96,6 +96,20 @@ const initDB = async () => {
         "Barcelona": [2.1734, 41.3851]
     };
 
+    const mockPriceHistory = (basePrice) => {
+        const history = [];
+        const today = new Date();
+        for (let i = 4; i >= 1; i--) {
+            const date = new Date(today);
+            date.setMonth(today.getMonth() - i);
+            const multiplier = 0.85 + (Math.random() * 0.3); // Between 85% and 115%
+            const pastPrice = Math.round(basePrice * multiplier);
+            history.push({ price: pastPrice, date: date });
+        }
+        history.push({ price: basePrice, date: today });
+        return history;
+    };
+
     initData.data = initData.data.map((obj) => {
         const coords = locationCoordinates[obj.location] || [77.209, 28.6139]; // Default coordinates: New Delhi
         return {
@@ -104,7 +118,8 @@ const initDB = async () => {
             geometry: {
                 type: "Point",
                 coordinates: coords
-            }
+            },
+            priceHistory: mockPriceHistory(obj.price)
         };
     });
     await Listing.insertMany(initData.data);

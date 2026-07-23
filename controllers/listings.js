@@ -45,6 +45,7 @@ module.exports.createListing = async (req, res, next) => {
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
     newListing.image = { filename, url };
+    newListing.priceHistory = [{ price: req.body.listing.price, date: new Date() }];
 
     
     let query = `${req.body.listing.location}, ${req.body.listing.country}`;
@@ -88,7 +89,27 @@ module.exports.renderEditForm = async (req, res) => {
 module.exports.updateListing = async (req, res) => {
     let { id } = req.params;
 
-    let listing = await Listing.findByIdAndUpdate(id, { ...req.body.listing }, { new: true });
+    let listing = await Listing.findById(id);
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+
+    const newPrice = Number(req.body.listing.price);
+    const priceChanged = listing.price !== newPrice;
+
+    if (priceChanged) {
+        listing.priceHistory.push({ price: newPrice, date: new Date() });
+    }
+
+    listing.title = req.body.listing.title;
+    listing.description = req.body.listing.description;
+    listing.price = newPrice;
+    listing.location = req.body.listing.location;
+    listing.country = req.body.listing.country;
+    if (req.body.listing.category) {
+        listing.category = req.body.listing.category;
+    }
 
     // Geocoding update
     let query = `${listing.location}, ${listing.country}`;
@@ -104,7 +125,6 @@ module.exports.updateListing = async (req, res) => {
                 type: "Point",
                 coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
             };
-            await listing.save();
         }
     } catch (err) {
         console.error("Geocoding error during update:", err);
@@ -114,9 +134,9 @@ module.exports.updateListing = async (req, res) => {
         let url = req.file.path;
         let filename = req.file.filename;
         listing.image = { filename, url };
-        await listing.save();
     }
 
+    await listing.save();
     req.flash("success", "Listing Updated!");
     res.redirect(`/listings/${id}`);
 };
