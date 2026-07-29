@@ -1,53 +1,46 @@
-# 🏠 Rentra — Premium Rental Marketplace
+# Rentra — Rental Marketplace
 
-[![Node.js Version](https://img.shields.io/badge/Node.js-v22.18.0-green.svg)](https://nodejs.org/)
-[![Database](https://img.shields.io/badge/Database-MongoDB-47A248.svg?logo=mongodb)](https://www.mongodb.com/)
-[![Express](https://img.shields.io/badge/Backend-Express.js-000000.svg?logo=express)](https://expressjs.com/)
-[![License](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![Responsive UI](https://img.shields.io/badge/UI-Responsive-FF69B4.svg)]()
-[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen.svg?style=for-the-badge&logo=render)](https://rentra-ila8.onrender.com/listings)
+Rentra is a full-stack rental marketplace where hosts can list properties, and users can browse listings, book stays, and leave reviews. Built on Node.js/Express and MongoDB, it features session-based authentication, image uploads, server-side validation, and a booking calculation engine.
 
-Rentra is a full-stack rental marketplace inspired by modern vacation rental platforms. It offers a premium, responsive web interface that allows hosts to list their properties and enables travelers to book destinations and share reviews. Built on the robust **MERN (Express/Mongo)** stack with a server-side EJS templating architecture, it features secure authentication, media uploads, database persistence, and a dynamic booking/pricing engine.
-
-🌐 **Live Application:** [https://rentra-ila8.onrender.com/listings](https://rentra-ila8.onrender.com/listings)
+**Live Application:** [https://rentra-ila8.onrender.com/listings](https://rentra-ila8.onrender.com/listings)
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 👤 User Authentication & Security
-- **Secure Registration & Login**: Leverages `passport.js` and `passport-local-mongoose` for secure credential verification, password hashing, and user sessions.
-- **Authorization Middlewares**: Protects listings and reviews; only authenticated listing owners can modify or delete their properties, and only review authors can delete their reviews.
+### User Authentication & Security
+- **Signup & Login:** Uses `passport.js` and `passport-local-mongoose` to handle authentication, password hashing, and sessions.
+- **Authorization Middlewares:** Checks permissions so only listing owners can edit/delete listings, and only review authors can delete reviews.
 
-### 🏡 Listings Management (CRUD)
-- **Host Control**: Create, edit, preview, and delete accommodation listings.
-- **Dynamic Categories & Filters**: Browse listings categorized under *Trending, Rooms, Mountains, Beach, City, Camping, Homes, Pool, Hotels,* or *Luxury*.
-- **Location-Based Search**: Instantly look up destinations by Title, Location, or Country using regex search matching.
-- **Cloud-Hosted Media**: Integrates with Cloudinary via `multer` to handle seamless property photo uploads and optimized original image scaling.
+### Listings Management (CRUD)
+- **Host Control:** CRUD operations for property listings (create, edit, view, delete).
+- **Categories & Filters:** Browse listings filtered by categories (Trending, Rooms, Mountains, Beach, City, Camping, Homes, Pool, Hotels, Luxury).
+- **Location-Based Search:** Regex search to find listings by title, location, or country.
+- **Media Uploads:** Image uploads using Multer and Cloudinary integration.
 
-### 📅 Advanced Booking Engine
-- **Interactive Reservation Card**: Dynamically calculates rental duration and bills in real time when check-in/checkout dates are modified.
-- **Pricing Breakdown**: Automatically estimates total costs including subtotal (with customizable extra guest surcharges beyond 2 guests), cleaning fees, and service charges.
-- **Reservation Controls**: Restricts booking access to logged-in users and validates booking dates to ensure checkout occurs after check-in.
+### Booking Engine
+- **Pricing Calculator:** Real-time calculation of pricing and rental duration based on selected check-in/checkout dates.
+- **Cost Breakdown:** Shows subtotal, extra guest surcharges (for more than 2 guests), cleaning fees, and service fees.
+- **Validation:** Restricts booking to authenticated users and validates checkout dates.
 
-### 💬 Community Reviews
-- **5-Star Rating System**: Simple visual star selector for leaving feedback.
-- **Comments Section**: Users can post comments on properties, with average ratings calculated dynamically.
-
----
-
-## 🛠️ Tech Stack & Tools
-
-* **Frontend**: HTML5, CSS3 (with glassmorphism elements, custom micro-interactions), JavaScript (ES6+), [EJS](https://ejs.co/) (Embedded JavaScript templates with `ejs-mate` layouts), [Bootstrap 5](https://getbootstrap.com/), FontAwesome 6 icons.
-* **Backend**: Node.js, Express.js.
-* **Database**: MongoDB Atlas, Mongoose ODM.
-* **Session Storage**: `connect-mongo` storing session states in MongoDB, `express-session` for session tracking, and `cookie-parser`.
-* **Media Cloud**: [Cloudinary](https://cloudinary.com/) (using `multer` and `multer-storage-cloudinary`).
-* **Validation**: [Joi](https://joi.dev/) (object schema validation for incoming request payloads).
+### Reviews
+- **Rating System:** 5-star rating selection.
+- **Comments Section:** Review comments with dynamically calculated average listing ratings.
 
 ---
 
-## 📂 Project Directory Structure
+## Tech Stack & Tools
+
+* **Frontend:** HTML5, CSS3, JavaScript, EJS (with `ejs-mate` layouts), Bootstrap 5, FontAwesome 6 icons.
+* **Backend:** Node.js, Express.js.
+* **Database:** MongoDB Atlas, Mongoose ODM.
+* **Session Storage:** `connect-mongo` for session storage in MongoDB, `express-session`, and `cookie-parser`.
+* **Media Cloud:** Cloudinary (using `multer` and `multer-storage-cloudinary`).
+* **Validation:** Joi (object schema validation for request payloads).
+
+---
+
+## Project Directory Structure
 
 ```text
 rentra/
@@ -90,7 +83,7 @@ rentra/
 
 ---
 
-## 🗄️ Database Schema Design
+## Database Schema Design
 
 The application utilizes MongoDB to store listings, reviews, bookings, and user authentication data. Below is the Entity-Relationship Diagram (ERD) mapping the schemas and their relationships:
 
@@ -144,7 +137,7 @@ erDiagram
 
 ---
 
-## 🚀 Installation & Local Setup
+## Installation & Local Setup
 
 ### Prerequisites
 Make sure you have the following installed on your machine:
@@ -181,8 +174,10 @@ CLOUD_NAME=your_cloudinary_cloud_name
 CLOUD_API_KEY=your_cloudinary_api_key
 CLOUD_API_SECRET=your_cloudinary_api_secret
 
-# (Optional) Map API Token if maps integrations are active
-MAP_TOKEN=your_map_api_token
+# Email & Brevo API details for OTP registration verification
+EMAIL_USER=your_brevo_sender_email
+EMAIL_PASS=your_email_smtp_password
+BREVO_API_KEY=your_brevo_api_key
 ```
 
 #### 4. Seed the Database
@@ -204,25 +199,28 @@ Visit the app in your local browser:
 
 ---
 
-## 🔒 Environment Variable Specifications
+## Environment Variables
 
 | Variable | Description | Example / Required |
 | :--- | :--- | :--- |
-| `ATLASDB_URL` | MongoDB connection URL (Atlas or Local Mongo URI) | `mongodb://127.0.0.1:27017/rentra` |
-| `SECRET` | Encryption secret string for Express-sessions cookie storage | Any custom cryptographic string |
-| `CLOUD_NAME` | Cloudinary name for image hosting bucket | Cloudinary account Dashboard value |
+| `ATLASDB_URL` | MongoDB connection URL | `mongodb://127.0.0.1:27017/rentra` |
+| `SECRET` | Express session cookie encryption secret | Any custom cryptographic string |
+| `CLOUD_NAME` | Cloudinary cloud name | Cloudinary account Dashboard value |
 | `CLOUD_API_KEY` | Cloudinary API Key | Cloudinary account Dashboard value |
 | `CLOUD_API_SECRET` | Cloudinary API Secret Key | Cloudinary account Dashboard value |
+| `EMAIL_USER` | Brevo sender email address | `example@domain.com` |
+| `EMAIL_PASS` | Brevo SMTP password | SMTP password key |
+| `BREVO_API_KEY` | Brevo API key for SMTP emails | Brevo transaction mail API key |
 
 ---
 
-## 📜 License
+## License
 
-This project is licensed under the **ISC License** — see the [package.json](file:///c:/Users/bhavy/OneDrive/Desktop/Folders/Code/APNA%20COLLEGE%20COURSE/WEB%20DEV/Rentra/rentra/package.json) file for details.
+This project is licensed under the **ISC License** — see the [package.json](package.json) file for details.
 
 ---
 
-## 👤 Author
+## Author
 
 * **Bhavya Yadav**
 * GitHub: [@iqbhavya](https://github.com/iqbhavya)
