@@ -176,7 +176,6 @@ CLOUD_API_SECRET=your_cloudinary_api_secret
 
 # Email & Brevo API details for OTP registration verification
 EMAIL_USER=your_brevo_sender_email
-EMAIL_PASS=your_email_smtp_password
 BREVO_API_KEY=your_brevo_api_key
 ```
 
@@ -209,7 +208,6 @@ Visit the app in your local browser:
 | `CLOUD_API_KEY` | Cloudinary API Key | Cloudinary account Dashboard value |
 | `CLOUD_API_SECRET` | Cloudinary API Secret Key | Cloudinary account Dashboard value |
 | `EMAIL_USER` | Brevo sender email address | `example@domain.com` |
-| `EMAIL_PASS` | Brevo SMTP password | SMTP password key |
 | `BREVO_API_KEY` | Brevo API key for SMTP emails | Brevo transaction mail API key |
 
 ---
