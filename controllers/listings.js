@@ -72,7 +72,7 @@ module.exports.index = async (req, res) => {
     } else {
         allListings = await Listing.find({}).populate("reviews");
     }
-    res.render('listings/index.ejs', { listings: allListings, activeCategory: category || "" });
+    res.render('listings/index.ejs', { listings: allListings, activeCategory: category || "", showSearchBar: true });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -193,5 +193,5 @@ module.exports.search = async (req, res) => {
     }).populate("reviews");
 
     // We use "listings" as the key here to match your EJS loop
-    res.render("listings/index.ejs", { listings, activeCategory: "" });
+    res.render("listings/index.ejs", { listings, activeCategory: "", showSearchBar: true });
 };
