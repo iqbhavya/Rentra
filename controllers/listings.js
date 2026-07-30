@@ -1,5 +1,57 @@
 const Listing = require("../models/listing");
 
+// Helper function to geocode address using Nominatim (OpenStreetMap) with query fallback and unique user-agents
+async function geocodeAddress(location, country) {
+    const queries = [];
+    const cleanLocation = location ? location.trim() : "";
+    const cleanCountry = country ? country.trim() : "";
+    
+    if (cleanLocation && cleanCountry) {
+        queries.push(`${cleanLocation}, ${cleanCountry}`);
+    }
+    if (cleanLocation) {
+        queries.push(cleanLocation);
+    }
+    
+    let coordinates = [77.209, 28.6139]; // Default fallback coordinates: New Delhi
+    const userAgent = `RentraApp-Bhavya-${Math.random().toString(36).substring(2, 7)}`;
+    
+    for (const q of queries) {
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`;
+            const response = await fetch(url, {
+                headers: {
+                    'User-Agent': userAgent
+                }
+            });
+            
+            if (!response.ok) {
+                console.warn(`Geocoding warning for query "${q}": HTTP status ${response.status}`);
+                continue;
+            }
+            
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lon = parseFloat(data[0].lon);
+                const lat = parseFloat(data[0].lat);
+                if (!isNaN(lon) && !isNaN(lat)) {
+                    return {
+                        type: "Point",
+                        coordinates: [lon, lat]
+                    };
+                }
+            }
+        } catch (err) {
+            console.error(`Geocoding error for query "${q}":`, err);
+        }
+    }
+    
+    return {
+        type: "Point",
+        coordinates: coordinates
+    };
+}
+
 
 module.exports.index = async (req, res) => {
     const { category } = req.query;
@@ -48,25 +100,8 @@ module.exports.createListing = async (req, res, next) => {
     newListing.priceHistory = [{ price: req.body.listing.price, date: new Date() }];
 
     
-    let query = `${req.body.listing.location}, ${req.body.listing.country}`;
-    let geometry = { type: "Point", coordinates: [77.209, 28.6139] }; // Fallback: New Delhi
-    try {
-        let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-            headers: {
-                'User-Agent': 'RentraWebDevApp/1.0'
-            }
-        });
-        let data = await response.json();
-        if (data && data.length > 0) {
-            geometry = {
-                type: "Point",
-                coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
-            };
-        }
-    } catch (err) {
-        console.error("Geocoding error during creation:", err);
-    }
-    newListing.geometry = geometry;
+    // Geocode property location
+    newListing.geometry = await geocodeAddress(req.body.listing.location, req.body.listing.country);
 
     await newListing.save();
     req.flash("success", "New Listing Created!");
@@ -112,23 +147,7 @@ module.exports.updateListing = async (req, res) => {
     }
 
     // Geocoding update
-    let query = `${listing.location}, ${listing.country}`;
-    try {
-        let response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`, {
-            headers: {
-                'User-Agent': 'RentraWebDevApp/1.0'
-            }
-        });
-        let data = await response.json();
-        if (data && data.length > 0) {
-            listing.geometry = {
-                type: "Point",
-                coordinates: [parseFloat(data[0].lon), parseFloat(data[0].lat)]
-            };
-        }
-    } catch (err) {
-        console.error("Geocoding error during update:", err);
-    }
+    listing.geometry = await geocodeAddress(listing.location, listing.country);
 
     if (typeof req.file !== "undefined") {
         let url = req.file.path;
