@@ -300,7 +300,7 @@ module.exports.updateProfile = async (req, res) => {
             req.flash("success", `Verification code sent to your phone! Country detected: ${detectedCountry.name} ${detectedCountry.flag}`);
         } else {
             await sendOtpEmail(req.user.email, otp);
-            req.flash("success", `Verification code sent to your email (${req.user.email}) because your Brevo account has no SMS credits active!`);
+            req.flash("success", `Verification code sent to your email (${req.user.email})`);
         }
         return res.redirect("/verify-phone");
     }
