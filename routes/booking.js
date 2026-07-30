@@ -7,6 +7,9 @@ const bookingsController = require("../controllers/bookings.js");
 // View user's bookings / My Bookings dashboard
 router.get("/bookings", isLoggedIn, wrapAsync(bookingsController.listBookings));
 
+// View received bookings (bookings on user's own listings)
+router.get("/received-bookings", isLoggedIn, wrapAsync(bookingsController.listReceivedBookings));
+
 // Create a new booking reservation
 router.post("/listings/:id/bookings", isLoggedIn, wrapAsync(bookingsController.createBooking));
 

@@ -206,3 +206,14 @@ module.exports.logoutForm = (req, res, next) => {
         }
     });
 };
+
+module.exports.renderProfile = async (req, res) => {
+    res.render("users/profile.ejs", { user: req.user });
+};
+
+module.exports.updateProfile = async (req, res) => {
+    const { email, phoneNumber } = req.body.user;
+    await User.findByIdAndUpdate(req.user._id, { email, phoneNumber });
+    req.flash("success", "Profile updated successfully!");
+    res.redirect("/profile");
+};

@@ -1,0 +1,50 @@
+<% layout("layouts/boilerplate") %>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="form-card my-5 shadow-sm p-4 border rounded-4 bg-white" style="max-width: 520px; margin: 0 auto;">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-danger-subtle text-danger rounded-circle mb-3" style="width: 70px; height: 70px; background-color: #ffe8ec;">
+                    <i class="fa-solid fa-user-gear fs-3" style="color: #ff385c;"></i>
+                </div>
+                <h2 class="fw-bold mb-1" style="font-size: 1.8rem; color: var(--text-main);">My Profile</h2>
+                <p class="text-muted small">View and manage your account details</p>
+            </div>
+            
+            <form action="/profile" method="POST" class="needs-validation" novalidate>
+                <!-- Username (Read-Only) -->
+                <div class="mb-3">
+                    <label class="form-label text-secondary fw-semibold small">Username</label>
+                    <div class="form-control bg-light text-muted border-light py-2 px-3 rounded-3" style="cursor: not-allowed; font-weight: 500;">
+                        <i class="fa-solid fa-lock me-2 text-secondary" style="font-size: 0.85rem;"></i><%= user.username %>
+                    </div>
+                    <div class="form-text text-muted" style="font-size: 0.8rem;">Username cannot be modified.</div>
+                </div>
+
+                <!-- Email (Editable) -->
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold small">Email Address</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" name="user[email]" id="email" required value="<%= user.email %>" placeholder="name@example.com" class="form-control border-start-0 ps-2" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                    </div>
+                </div>
+
+                <!-- Phone Number (Editable) -->
+                <div class="mb-4">
+                    <label for="phoneNumber" class="form-label fw-semibold small">Phone Number</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-phone"></i></span>
+                        <input type="tel" name="user[phoneNumber]" id="phoneNumber" value="<%= user.phoneNumber || '' %>" placeholder="Enter phone number (e.g. 9876543210)" class="form-control border-start-0 ps-2" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                    </div>
+                    <div class="form-text text-muted" style="font-size: 0.8rem;">Adding a phone number helps listing hosts contact you regarding reservations.</div>
+                </div>
+
+                <button class="btn btn-form-action w-100 py-2.5 fw-bold rounded-3" style="background-color: var(--primary-color); border: none; color: white;">
+                    <i class="fa-regular fa-floppy-disk me-2"></i>Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
