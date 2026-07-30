@@ -1,55 +1,66 @@
 const Listing = require("../models/listing");
 
-// Helper function to geocode address using Nominatim (OpenStreetMap) with query fallback and unique user-agents
+// Helper function to geocode address using Nominatim (OpenStreetMap)
+// Progressively simplifies the query so specific places (e.g. "IIITDM Jabalpur, Jabalpur")
+// still resolve to the nearest recognizable location instead of falling back to New Delhi.
 async function geocodeAddress(location, country) {
-    const queries = [];
     const cleanLocation = location ? location.trim() : "";
     const cleanCountry = country ? country.trim() : "";
-    
-    if (cleanLocation && cleanCountry) {
-        queries.push(`${cleanLocation}, ${cleanCountry}`);
+
+    // Build a list of queries from most specific to least specific
+    // e.g. location = "IIITDM Jabalpur, Jabalpur", country = "India"
+    // queries: ["IIITDM Jabalpur, Jabalpur, India", "Jabalpur, India", "IIITDM Jabalpur, Jabalpur", "Jabalpur"]
+    const queries = [];
+    const locationParts = cleanLocation.split(",").map(p => p.trim()).filter(Boolean);
+
+    if (cleanCountry) {
+        // Full location + country
+        if (cleanLocation) queries.push(`${cleanLocation}, ${cleanCountry}`);
+        // Progressively drop leading parts: "A, B, Country" → "B, Country"
+        for (let i = 1; i < locationParts.length; i++) {
+            queries.push(`${locationParts.slice(i).join(", ")}, ${cleanCountry}`);
+        }
     }
-    if (cleanLocation) {
-        queries.push(cleanLocation);
+    // Same without country
+    if (cleanLocation) queries.push(cleanLocation);
+    for (let i = 1; i < locationParts.length; i++) {
+        queries.push(locationParts.slice(i).join(", "));
     }
-    
-    let coordinates = [77.209, 28.6139]; // Default fallback coordinates: New Delhi
-    const userAgent = `RentraApp-Bhavya-${Math.random().toString(36).substring(2, 7)}`;
-    
-    for (const q of queries) {
+
+    // Remove duplicate queries while preserving order
+    const uniqueQueries = [...new Set(queries)];
+
+    const userAgent = `RentraWebApp-${Date.now()}`;
+
+    for (const q of uniqueQueries) {
         try {
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`;
             const response = await fetch(url, {
-                headers: {
-                    'User-Agent': userAgent
-                }
+                headers: { 'User-Agent': userAgent }
             });
-            
+
             if (!response.ok) {
                 console.warn(`Geocoding warning for query "${q}": HTTP status ${response.status}`);
                 continue;
             }
-            
+
             const data = await response.json();
             if (data && data.length > 0) {
                 const lon = parseFloat(data[0].lon);
                 const lat = parseFloat(data[0].lat);
                 if (!isNaN(lon) && !isNaN(lat)) {
-                    return {
-                        type: "Point",
-                        coordinates: [lon, lat]
-                    };
+                    console.log(`Geocoded "${location}" → "${q}" → [${lon}, ${lat}]`);
+                    return { type: "Point", coordinates: [lon, lat] };
                 }
             }
         } catch (err) {
             console.error(`Geocoding error for query "${q}":`, err);
         }
     }
-    
-    return {
-        type: "Point",
-        coordinates: coordinates
-    };
+
+    // Ultimate fallback: New Delhi
+    console.warn(`Geocoding failed for "${location}, ${country}" — using default (New Delhi)`);
+    return { type: "Point", coordinates: [77.209, 28.6139] };
 }
 
 
@@ -65,7 +76,7 @@ module.exports.index = async (req, res) => {
 };
 
 module.exports.renderNewForm = (req, res) => {
-    
+
     res.render('listings/new.ejs');
 };
 
@@ -99,7 +110,7 @@ module.exports.createListing = async (req, res, next) => {
     newListing.image = { filename, url };
     newListing.priceHistory = [{ price: req.body.listing.price, date: new Date() }];
 
-    
+
     // Geocode property location
     newListing.geometry = await geocodeAddress(req.body.listing.location, req.body.listing.country);
 
@@ -111,13 +122,13 @@ module.exports.createListing = async (req, res, next) => {
 module.exports.renderEditForm = async (req, res) => {
     const { id } = req.params;
     const listing = await Listing.findById(id);
-    if(!listing){
+    if (!listing) {
         req.flash("error", "Listing you requested for does not exist!");
         res.redirect("/listings");
     }
 
     let originalImageUrl = listing.image.url;
-    originalImageUrl.replace("/upload","/upload/w_250");
+    originalImageUrl.replace("/upload", "/upload/w_250");
     res.render('listings/edit.ejs', { listing });
 };
 
@@ -182,5 +193,5 @@ module.exports.search = async (req, res) => {
     }).populate("reviews");
 
     // We use "listings" as the key here to match your EJS loop
-    res.render("listings/index.ejs", { listings, activeCategory: "" }); 
+    res.render("listings/index.ejs", { listings, activeCategory: "" });
 };
