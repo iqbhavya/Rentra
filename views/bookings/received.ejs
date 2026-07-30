@@ -96,7 +96,13 @@
                                             <div class="small text-secondary mb-1 fw-bold"><i class="fa-solid fa-user-tie me-1"></i>GUEST INFO</div>
                                             <div class="fw-semibold text-dark"><%= booking.user ? booking.user.username : 'Unknown Guest' %></div>
                                             <% if (booking.user && booking.user.email) { %>
-                                                <div class="text-muted small text-truncate"><%= booking.user.email %></div>
+                                                <div class="text-muted small text-truncate mb-1"><i class="fa-regular fa-envelope me-1" style="font-size: 0.8rem;"></i><%= booking.user.email %></div>
+                                            <% } %>
+                                            <% if (booking.user && booking.user.phoneNumber) { %>
+                                                <% const countryInfo = getCountryFromPhone(booking.user.phoneNumber); %>
+                                                <div class="text-muted small"><i class="fa-solid fa-phone me-1" style="font-size: 0.8rem;"></i><%= booking.user.phoneNumber %> <% if (countryInfo) { %>(<%= countryInfo.name %> <%= countryInfo.flag %>)<% } %></div>
+                                            <% } else { %>
+                                                <div class="text-muted small italic"><i class="fa-solid fa-phone-slash me-1" style="font-size: 0.8rem;"></i>No phone number provided</div>
                                             <% } %>
                                         </div>
 
@@ -128,11 +134,28 @@
                                     </div>
                                     
                                     <!-- Contact Guest Footer Action -->
-                                    <% if (booking.user && booking.user.email) { %>
+                                    <% if (booking.user) { %>
                                         <div class="px-4 pb-4 bg-transparent border-0 pt-0">
-                                            <a href="mailto:<%= booking.user.email %>?subject=Regarding your booking at <%= encodeURIComponent(booking.listing.title) %>" class="btn btn-outline-dark w-100 rounded-3 py-2 fw-semibold" style="font-size: 0.9rem;">
-                                                <i class="fa-solid fa-envelope me-2"></i>Contact Guest
-                                            </a>
+                                            <div class="row g-2">
+                                                <div class="col">
+                                                    <% if (booking.user.email) { %>
+                                                        <a href="mailto:<%= booking.user.email %>?subject=Regarding your booking at <%= encodeURIComponent(booking.listing.title) %>" class="btn btn-outline-dark w-100 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="font-size: 0.85rem;">
+                                                            <i class="fa-solid fa-envelope"></i> Email
+                                                        </a>
+                                                    <% } %>
+                                                </div>
+                                                <div class="col">
+                                                    <% if (booking.user.phoneNumber) { %>
+                                                        <a href="tel:<%= booking.user.phoneNumber %>" class="btn btn-outline-success w-100 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="font-size: 0.85rem;">
+                                                            <i class="fa-solid fa-phone"></i> Call
+                                                        </a>
+                                                    <% } else { %>
+                                                        <button class="btn btn-outline-secondary w-100 rounded-3 py-2 fw-semibold d-flex align-items-center justify-content-center gap-2" style="font-size: 0.85rem;" disabled title="Guest has not provided a phone number">
+                                                            <i class="fa-solid fa-phone-slash"></i> Call
+                                                        </button>
+                                                    <% } %>
+                                                </div>
+                                            </div>
                                         </div>
                                     <% } %>
                                 </div>

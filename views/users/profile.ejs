@@ -36,9 +36,11 @@
                     <label for="phoneNumber" class="form-label fw-semibold small">Phone Number</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light text-muted border-end-0"><i class="fa-solid fa-phone"></i></span>
-                        <input type="tel" name="user[phoneNumber]" id="phoneNumber" value="<%= user.phoneNumber || '' %>" placeholder="Enter phone number (e.g. 9876543210)" class="form-control border-start-0 ps-2" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        <input type="tel" name="user[phoneNumber]" id="phoneNumber" value="<%= user.phoneNumber || '' %>" placeholder="e.g. 919876543210 or +919876543210" class="form-control border-start-0 ps-2" pattern="^\+?\d{7,15}$" style="border-top-left-radius: 0; border-bottom-left-radius: 0;">
+                        <div class="invalid-feedback">Please enter a legal phone number (7 to 15 digits).</div>
                     </div>
-                    <div class="form-text text-muted" style="font-size: 0.8rem;">Adding a phone number helps listing hosts contact you regarding reservations.</div>
+                    <!-- Dynamic Country Detector -->
+                    <div id="phone-country-info" class="form-text mt-2 fw-semibold" style="font-size: 0.85rem; display: none;"></div>
                 </div>
 
                 <button class="btn btn-form-action w-100 py-2.5 fw-bold rounded-3" style="background-color: var(--primary-color); border: none; color: white;">
@@ -48,3 +50,33 @@
         </div>
     </div>
 </div>
+
+<script src="/js/phoneHelper.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const phoneInput = document.getElementById("phoneNumber");
+        const countryInfo = document.getElementById("phone-country-info");
+
+        const updateCountry = () => {
+            const val = phoneInput.value.trim().replace(/[\s\-\(\)]/g, "");
+            if (!val) {
+                countryInfo.style.display = "none";
+                countryInfo.innerHTML = "";
+                return;
+            }
+
+            const info = getCountryFromPhone(val);
+            if (info) {
+                countryInfo.style.display = "block";
+                countryInfo.innerHTML = `<span class="text-success"><i class="fa-solid fa-earth-americas me-1"></i>Country: ${info.name} ${info.flag}</span>`;
+            } else {
+                countryInfo.style.display = "block";
+                countryInfo.innerHTML = `<span class="text-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i>Could not detect country code</span>`;
+            }
+        };
+
+        phoneInput.addEventListener("input", updateCountry);
+        // Trigger on load if there's a pre-filled value
+        updateCountry();
+    });
+</script>

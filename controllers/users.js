@@ -1,4 +1,5 @@
 const User = require('../models/user.js');
+const { getCountryFromPhone } = require('../public/js/phoneHelper.js');
 
 
 const sendOtpEmail = async (email, otp) => {
@@ -61,6 +62,45 @@ const sendOtpEmail = async (email, otp) => {
         }
     } else {
         console.log("⚠️ Brevo API key not configured in environment (.env). Code logged above for local testing.");
+    }
+};
+
+const sendOtpSms = async (phoneNumber, otp) => {
+    const brevoApiKey = process.env.BREVO_API_KEY;
+    console.log(`🔑 SMS OTP generated for ${phoneNumber}: ${otp}`);
+
+    if (brevoApiKey) {
+        try {
+            const response = await fetch("https://api.brevo.com/v3/transactionalSMS/sms", {
+                method: "POST",
+                headers: {
+                    "accept": "application/json",
+                    "api-key": brevoApiKey,
+                    "content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    sender: "Rentra",
+                    recipient: phoneNumber,
+                    content: `Your Rentra phone verification code is ${otp}. Valid for 5 minutes.`,
+                    type: "transactional"
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                console.error("❌ Brevo API returned error:", errData.message || response.status);
+                return false;
+            }
+
+            console.log(`📱 SMS OTP successfully sent to ${phoneNumber}`);
+            return true;
+        } catch (error) {
+            console.error("❌ Error sending SMS OTP via Brevo API:", error);
+            return false;
+        }
+    } else {
+        console.log("⚠️ Brevo API key not configured in environment (.env). Code logged above for local testing.");
+        return false;
     }
 };
 
@@ -213,7 +253,125 @@ module.exports.renderProfile = async (req, res) => {
 
 module.exports.updateProfile = async (req, res) => {
     const { email, phoneNumber } = req.body.user;
-    await User.findByIdAndUpdate(req.user._id, { email, phoneNumber });
+
+    // Clean spaces, hyphens, and parentheses from input
+    let cleanPhone = phoneNumber ? phoneNumber.trim().replace(/[\s\-\(\)]/g, "") : "";
+
+    if (cleanPhone) {
+        // Validate it's a valid digit sequence (optionally starting with +) of length 7-15
+        const phoneRegex = /^\+?\d{7,15}$/;
+        if (!phoneRegex.test(cleanPhone)) {
+            req.flash("error", "Invalid phone number. Must be between 7 and 15 digits (e.g. 919876543210 or +919876543210)");
+            return res.redirect("/profile");
+        }
+
+        // Find corresponding country
+        const countryInfo = getCountryFromPhone(cleanPhone);
+        if (!countryInfo) {
+            req.flash("error", "Could not detect a valid country code. Please include your country prefix (e.g., 91 for India).");
+            return res.redirect("/profile");
+        }
+
+        // Standardize format: convert to E.164 (prepend + or map domestic 0 to +91)
+        if (cleanPhone.startsWith("0") && cleanPhone.length === 11) {
+            cleanPhone = "+91" + cleanPhone.substring(1);
+        } else if (!cleanPhone.startsWith("+")) {
+            cleanPhone = "+" + cleanPhone;
+        }
+    }
+
+    // Check if phone number is changing (and is not empty)
+    if (cleanPhone && cleanPhone !== req.user.phoneNumber) {
+        // Generate a 6-digit verification code (OTP)
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 5 * 60 * 1000; // valid for 5 mins
+
+        req.session.phoneVerificationData = {
+            email,
+            phoneNumber: cleanPhone,
+            otp,
+            expiresAt
+        };
+
+        const detectedCountry = getCountryFromPhone(cleanPhone);
+        console.log(`📱 Phone Verification OTP generated for ${cleanPhone}: ${otp}`);
+        const smsSent = await sendOtpSms(cleanPhone, otp);
+        if (smsSent) {
+            req.flash("success", `Verification code sent to your phone! Country detected: ${detectedCountry.name} ${detectedCountry.flag}`);
+        } else {
+            await sendOtpEmail(req.user.email, otp);
+            req.flash("success", `Verification code sent to your email (${req.user.email}) because your Brevo account has no SMS credits active!`);
+        }
+        return res.redirect("/verify-phone");
+    }
+
+    // Otherwise, update profile directly
+    await User.findByIdAndUpdate(req.user._id, { email, phoneNumber: cleanPhone });
     req.flash("success", "Profile updated successfully!");
     res.redirect("/profile");
+};
+
+module.exports.renderVerifyPhoneForm = (req, res) => {
+    const phoneData = req.session.phoneVerificationData;
+    if (!phoneData) {
+        req.flash("error", "No phone verification session active. Update your profile first.");
+        return res.redirect("/profile");
+    }
+    res.render("users/verify-phone.ejs", { phoneNumber: phoneData.phoneNumber });
+};
+
+module.exports.verifyPhone = async (req, res) => {
+    const { otp } = req.body;
+    const phoneData = req.session.phoneVerificationData;
+
+    if (!phoneData) {
+        req.flash("error", "Verification session expired. Please update profile again.");
+        return res.redirect("/profile");
+    }
+
+    if (Date.now() > phoneData.expiresAt) {
+        delete req.session.phoneVerificationData;
+        req.flash("error", "Verification code expired. Please try again.");
+        return res.redirect("/profile");
+    }
+
+    if (otp !== phoneData.otp) {
+        req.flash("error", "Invalid verification code.");
+        return res.render("users/verify-phone.ejs", { phoneNumber: phoneData.phoneNumber });
+    }
+
+    // OTP matched! Save to database
+    await User.findByIdAndUpdate(req.user._id, {
+        email: phoneData.email,
+        phoneNumber: phoneData.phoneNumber
+    });
+
+    // Clear session data
+    delete req.session.phoneVerificationData;
+
+    req.flash("success", "Phone number verified and profile updated!");
+    res.redirect("/profile");
+};
+
+module.exports.resendPhoneOtp = async (req, res) => {
+    const phoneData = req.session.phoneVerificationData;
+    if (!phoneData) {
+        req.flash("error", "Verification session expired. Please try again.");
+        return res.redirect("/profile");
+    }
+
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+    phoneData.otp = newOtp;
+    phoneData.expiresAt = Date.now() + 5 * 60 * 1000;
+    req.session.phoneVerificationData = phoneData;
+
+    console.log(`📱 Phone Verification OTP (Resent) for ${phoneData.phoneNumber}: ${newOtp}`);
+    const smsSent = await sendOtpSms(phoneData.phoneNumber, newOtp);
+    if (smsSent) {
+        req.flash("success", "A new verification code has been sent to your phone!");
+    } else {
+        await sendOtpEmail(req.user.email, newOtp);
+        req.flash("success", `Verification code sent to your email (${req.user.email})`);
+    }
+    res.redirect("/verify-phone");
 };

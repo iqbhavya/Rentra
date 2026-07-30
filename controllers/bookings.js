@@ -57,5 +57,6 @@ module.exports.listReceivedBookings = async (req, res) => {
         .populate("user")
         .sort({ createdAt: -1 });
 
-    res.render("bookings/received.ejs", { bookings });
+    const { getCountryFromPhone } = require("../public/js/phoneHelper.js");
+    res.render("bookings/received.ejs", { bookings, getCountryFromPhone });
 };

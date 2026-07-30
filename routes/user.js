@@ -27,4 +27,10 @@ router.route("/profile")
 .get(isLoggedIn, wrapAsync(usersController.renderProfile))
 .post(isLoggedIn, wrapAsync(usersController.updateProfile));
 
+router.route("/verify-phone")
+.get(isLoggedIn, usersController.renderVerifyPhoneForm)
+.post(isLoggedIn, wrapAsync(usersController.verifyPhone));
+
+router.post("/resend-phone-otp", isLoggedIn, wrapAsync(usersController.resendPhoneOtp));
+
 module.exports = router;
