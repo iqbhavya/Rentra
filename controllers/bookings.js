@@ -3,17 +3,42 @@ const Listing = require("../models/listing");
 
 module.exports.createBooking = async (req, res) => {
     const { id } = req.params;
-    const { checkIn, checkOut, guests, totalPrice } = req.body.booking;
-
+    const { checkIn, checkOut, guests } = req.body.booking; // Ignore totalPrice from req.body
+    const listing = await Listing.findById(id);
+    if (!listing) {
+        req.flash("error", "Listing not found!");
+        return res.redirect("/listings");
+    }
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+    // Calculate number of nights
+    const timeDiff = checkOutDate.getTime() - checkInDate.getTime();
+    const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    // Validate dates
+    if (isNaN(diffDays) || diffDays <= 0) {
+        req.flash("error", "Checkout date must be after check-in date.");
+        return res.redirect(`/listings/${id}`);
+    }
+    const guestsCount = parseInt(guests) || 1;
+    if (guestsCount < 1) {
+        req.flash("error", "At least 1 guest is required.");
+        return res.redirect(`/listings/${id}`);
+    }
+    // Server-side calculation matching the frontend formula
+    const pricePerNight = Number(listing.price) || 0;
+    const extraGuestFee = guestsCount > 2 ? (guestsCount - 2) * 500 * diffDays : 0;
+    const subtotal = (pricePerNight * diffDays) + extraGuestFee;
+    const cleaningFee = 1200;
+    const serviceFee = Math.round(subtotal * 0.05);
+    const calculatedTotal = subtotal + cleaningFee + serviceFee;
     const newBooking = new Booking({
         listing: id,
         user: req.user._id,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
-        guests: parseInt(guests),
-        totalPrice: parseFloat(totalPrice)
+        checkIn: checkInDate,
+        checkOut: checkOutDate,
+        guests: guestsCount,
+        totalPrice: calculatedTotal // <-- Verified server-calculated price
     });
-
     await newBooking.save();
     req.flash("success", "Booking successful! Welcome to your next destination.");
     res.redirect("/bookings");

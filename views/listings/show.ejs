@@ -217,7 +217,7 @@
                 <!-- Right Side: Booking Box Card -->
                 <div class="booking-reservation-col">
                     <form action="/listings/<%= listing._id %>/bookings" method="POST" class="reservation-card">
-                        <input type="hidden" name="booking[totalPrice]" id="hiddenTotalPrice" value="0">
+                        
 
                         <div class="reservation-price-row">
                             <div class="reservation-price">
@@ -377,7 +377,7 @@
                                 }
                                 calcServiceEl.textContent = serviceFee.toLocaleString("en-IN");
                                 calcTotalEl.textContent = total.toLocaleString("en-IN");
-                                hiddenPriceEl.value = total;
+                                if (hiddenPriceEl) hiddenPriceEl.value = total;
                             }
                         };
 
