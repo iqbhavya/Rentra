@@ -23,6 +23,9 @@ const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
 const bookingsRouter = require("./routes/booking.js");
 
+const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+
 
 const dbUrl = process.env.ATLASDB_URL;
 
@@ -40,9 +43,53 @@ async function main(){
 app.set('views', path.join(__dirname, 'views'));
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
+
+
+app.set("trust proxy", 1);
+
+
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: ["'self'", "https://*.tile.openstreetmap.org"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://unpkg.com", "https://cdnjs.cloudflare.com"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://unpkg.com"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
+                imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://images.unsplash.com", "https://*.tile.openstreetmap.org", "https://unpkg.com"],
+            },
+        },
+    })
+);
+
+
+app.use(express.urlencoded({ extended: true, limit: "10kb" }));
+app.use(express.json({ limit: "10kb" }));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public')));
+
+
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 300,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many requests from this IP, please try again after 15 minutes."
+});
+app.use(generalLimiter);
+
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: "Too many attempts on this account endpoint. Please try again after 15 minutes."
+});
+
+app.use(["/login", "/signup", "/verify-otp", "/resend-otp"], authLimiter);
+
 
 const store = MongoStore.create({
     mongoUrl : dbUrl,
@@ -53,7 +100,7 @@ const store = MongoStore.create({
     
 });
 
-store.on("error", ()=> {
+store.on("error", (err)=> {
     console.log("Error in Mongo session store", err)
 })
 
@@ -110,6 +157,10 @@ app.use((err,req,res,next) => {
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+server.requestTimeout = 30000;
+server.headersTimeout = 35000;
+server.keepAliveTimeout = 30000;
